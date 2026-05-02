@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>时间管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  background:#FFF8F0;
+  color:#222;
+  min-height:100vh;
+  padding-bottom:30px;
+}
+.header{
+  background:linear-gradient(135deg,#FF6B35,#FF9A3D);
+  color:white;
+  padding:26px 18px 22px;
+  text-align:center;
+  border-radius:0 0 26px 26px;
+}
+.header h1{
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:14px;
+}
+.date-nav{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+}
+.nav-btn{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  border:none;
+  background:rgba(255,255,255,0.25);
+  color:white;
+  font-size:28px;
+  font-weight:900;
+}
+.date-label{
+  font-size:20px;
+  font-weight:900;
+  min-width:150px;
+}
+.summary{
+  display:flex;
+  gap:12px;
+  padding:14px;
+}
+.summary-card{
+  flex:1;
+  background:white;
+  border-radius:18px;
+  padding:16px 10px;
+  text-align:center;
+  box-shadow:0 4px 14px rgba(255,107,53,0.12);
+}
+.summary-num{
+  font-size:32px;
+  font-weight:900;
+}
+.summary-label{
+  font-size:13px;
+  color:#777;
+  font-weight:700;
+}
+.panel{
+  background:white;
+  margin:14px;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 4px 16px rgba(255,107,53,0.12);
+}
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:14px;
+}
+.panel-title{
+  font-size:24px;
+  font-weight:900;
+}
+.remain{
+  font-size:16px;
+  font-weight:900;
+}
+.video-color{color:#FF6B35}
+.audio-color{color:#4A90E2}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+}
+.cell{
+  aspect-ratio:1.25;
+  border-radius:12px;
+  background:#E8F5E9;
+  border:3px solid #A5E6B0;
+  position:relative;
+  overflow:hidden;
+}
+.cell.used.video{
+  background:#FFD8C8;
+  border-color:#FF6B35;
+}
+.cell.used.audio{
+  background:#D7E9FF;
+  border-color:#4A90E2;
+}
+.cell-label{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  font-size:11px;
+  font-weight:900;
+  line-height:1.15;
+  padding:2px;
+}
+.hint{
+  margin-top:12px;
+  font-size:13px;
+  color:#999;
+  font-weight:700;
+}
+.records-title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+.record{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+}
+.record:last-child{border-bottom:none}
+.record-main{
+  flex:1;
+}
+.record-name{
+  font-size:17px;
+  font-weight:900;
+}
+.record-meta{
+  font-size:12px;
+  color:#888;
+  margin-top:3px;
+}
+.record-time{
+  font-size:18px;
+  font-weight:900;
+}
+.delete-btn{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:none;
+  background:#eee;
+}
+.empty{
+  text-align:center;
+  color:#aaa;
+  font-weight:700;
+  padding:22px 0;
+}
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.38);
+  display:none;
+  align-items:flex-end;
+  z-index:99;
+}
+.overlay.show{display:flex}
+.modal{
+  background:white;
+  width:100%;
+  border-radius:28px 28px 0 0;
+  padding:24px 20px 38px;
+}
+.modal-title{
+  font-size:22px;
+  font-weight:900;
+  text-align:center;
+  margin-bottom:18px;
+}
+.form-group{margin-bottom:16px}
+label{
+  display:block;
+  font-size:13px;
+  color:#888;
+  font-weight:900;
+  margin-bottom:6px;
+}
+input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:2px solid #eee;
+  font-size:18px;
+  font-weight:700;
+  outline:none;
+}
+.quick-time{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:8px;
+}
+.quick-time button{
+  padding:12px 0;
+  border-radius:12px;
+  border:none;
+  background:#F3F3F3;
+  font-size:16px;
+  font-weight:900;
+}
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+}
+.btn{
+  flex:1;
+  padding:15px;
+  border-radius:16px;
+  border:none;
+  font-size:17px;
+  font-weight:900;
+}
+.cancel{background:#eee;color:#999}
+.confirm{background:#FF6B35;color:white}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>⏱ 时间管理</h1>
+  <div class="date-nav">
+    <button class="nav-btn" onclick="changeDate(-1)">‹</button>
+    <div class="date-label" id="dateLabel"></div>
+    <button class="nav-btn" onclick="changeDate(1)">›</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="summary-card">
+    <div class="summary-num video-color" id="videoRemainTop">20</div>
+    <div class="summary-label">动画剩余</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-num audio-color" id="audioRemainTop">20</div>
+    <div class="summary-label">故事剩余</div>
+  </div>
+</div>
+
+<div class="panel" onclick="openModal('video')">
+  <div class="panel-header">
+    <div class="panel-title">🎬 动画</div>
+    <div class="remain video-color" id="videoRemainText">剩余 20 分钟</div>
+  </div>
+  <div class="grid" id="videoGrid"></div>
+  <div class="hint">点这里记录动画时间</div>
+</div>
+
+<div class="panel" onclick="openModal('audio')">
+  <div class="panel-header">
+    <div class="panel-title">🎧 故事</div>
+    <div class="remain audio-color" id="audioRemainText">剩余 20 分钟</div>
+  </div>
+  <div class="grid" id="audioGrid"></div>
+  <div class="hint">点这里记录故事时间</div>
+</div>
+
+<div class="panel">
+  <div class="records-title">📝 今天记录</div>
+  <div id="recordList"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">记录时间</div>
+
+    <div class="form-group">
+      <label>内容名称</label>
+      <input id="nameInput" placeholder="例如：汪汪队、恐龙故事">
+    </div>
+
+    <div class="form-group">
+      <label>用了几分钟</label>
+      <input id="timeInput" type="number" inputmode="numeric" min="1" max="20" placeholder="输入分钟数">
+      <div class="quick-time">
+        <button onclick="setQuickTime(5)">5</button>
+        <button onclick="setQuickTime(10)">10</button>
+        <button onclick="setQuickTime(15)">15</button>
+        <button onclick="setQuickTime(20)">20</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn cancel" onclick="closeModal()">取消</button>
+      <button class="btn confirm" onclick="saveRecord()">记下来</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const VIDEO_LIMIT = 20;
+const AUDIO_LIMIT = 20;
+
+let currentDate = new Date();
+let currentType = "video";
+
+function pad(n){ return String(n).padStart(2,"0"); }
+
+function dateKey(){
+  return `${currentDate.getFullYear()}-${pad(currentDate.getMonth()+1)}-${pad(currentDate.getDate())}`;
+}
+
+function storageKey(){
+  return `time_records_${dateKey()}`;
+}
+
+function loadData(){
+  try{
+    return JSON.parse(localStorage.getItem(storageKey())) || [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveData(data){
+  localStorage.setItem(storageKey(), JSON.stringify(data));
+}
+
+function getUsed(type){
+  return loadData()
+    .filter(r=>r.type===type)
+    .reduce((s,r)=>s+r.minutes,0);
+}
+
+function formatDate(){
+  return `${currentDate.getMonth()+1}月${currentDate.getDate()}日`;
+}
+
+function changeDate(offset){
+  currentDate.setDate(currentDate.getDate()+offset);
+  render();
+}
+
+function renderGrid(id,type,limit){
+  const grid = document.getElementById(id);
+  grid.innerHTML = "";
+
+  const data = loadData().filter(r=>r.type===type);
+  const cells = [];
+
+  data.forEach(r=>{
+    for(let i=0;i<r.minutes && cells.length<limit;i++){
+      cells.push({record:r,pos:i});
+    }
+  });
+
+  while(cells.length<limit) cells.push(null);
+
+  cells.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "cell";
+
+    if(c){
+      div.classList.add("used",type);
+      if(c.pos===0){
+        const label = document.createElement("div");
+        label.className = "cell-label";
+        label.innerHTML = `${c.record.name.slice(0,4)}<br>${c.record.minutes}分`;
+        div.appendChild(label);
+      }
+    }
+
+    grid.appendChild(div);
+  });
+}
+
+function renderRecords(){
+  const list = document.getElementById("recordList");
+  const data = loadData();
+
+  if(data.length===0){
+    list.innerHTML = `<div class="empty">今天还没有使用时间</div>`;
+    return;
+  }
+
+  list.innerHTML = "";
+  [...data].reverse().forEach(r=>{
+    const div = document.createElement("div");
+    div.className = "record";
+    div.innerHTML = `
+      <div class="record-main">
+        <div class="record-name">${r.type==="video"?"🎬":"🎧"} ${r.name}</div>
+        <div class="record-meta">${r.type==="video"?"动画":"故事"} · ${r.date}</div>
+      </div>
+      <div class="record-time">${r.minutes}分</div>
+      <button class="delete-btn" onclick="deleteRecord('${r.id}')">×</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function render(){
+  document.getElementById("dateLabel").textContent = formatDate();
+
+  const videoUsed = getUsed("video");
+  const audioUsed = getUsed("audio");
+
+  const videoRemain = VIDEO_LIMIT - videoUsed;
+  const audioRemain = AUDIO_LIMIT - audioUsed;
+
+  document.getElementById("videoRemainTop").textContent = videoRemain;
+  document.getElementById("audioRemainTop").textContent = audioRemain;
+  document.getElementById("videoRemainText").textContent = `剩余 ${videoRemain} 分钟`;
+  document.getElementById("audioRemainText").textContent = `剩余 ${audioRemain} 分钟`;
+
+  renderGrid("videoGrid","video",VIDEO_LIMIT);
+  renderGrid("audioGrid","audio",AUDIO_LIMIT);
+  renderRecords();
+}
+
+function openModal(type){
+  currentType = type;
+  document.getElementById("modalTitle").textContent =
+    type==="video" ? "🎬 记录动画时间" : "🎧 记录故事时间";
+  document.getElementById("nameInput").value = "";
+  document.getElementById("timeInput").value = "";
+  document.getElementById("overlay").classList.add("show");
+  setTimeout(()=>document.getElementById("nameInput").focus(),200);
+}
+
+function closeModal(){
+  document.getElementById("overlay").classList.remove("show");
+}
+
+function setQuickTime(n){
+  document.getElementById("timeInput").value = n;
+}
+
+function saveRecord(){
+  const name = document.getElementById("nameInput").value.trim() || 
+    (currentType==="video" ? "动画" : "故事");
+  const minutes = parseInt(document.getElementById("timeInput").value);
+
+  if(!minutes || minutes<1){
+    alert("请输入分钟数");
+    return;
+  }
+
+  const limit = currentType==="video" ? VIDEO_LIMIT : AUDIO_LIMIT;
+  const used = getUsed(currentType);
+
+  if(minutes > limit-used){
+    alert(`剩余只有 ${limit-used} 分钟，不够用了`);
+    return;
+  }
+
+  const data = loadData();
+  data.push({
+    id: Date.now().toString(),
+    type: currentType,
+    name,
+    minutes,
+    date: formatDate()
+  });
+
+  saveData(data);
+  closeModal();
+  render();
+}
+
+function deleteRecord(id){
+  if(!confirm("删除这条记录？")) return;
+  const data = loadData().filter(r=>r.id!==id);
+  saveData(data);
+  render();
+}
+
+document.getElementById("overlay").addEventListener("click",e=>{
+  if(e.target.id==="overlay") closeModal();
+});
+
+render();
+</script>
+
+</body>
+</html>
